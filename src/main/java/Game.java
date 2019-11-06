@@ -91,6 +91,7 @@ public class Game extends Application {
         randomA = ThreadLocalRandom.current().nextInt(0, 4);
         randomB = ThreadLocalRandom.current().nextInt(0, 4);
         a[randomA][randomB] = 2;
+        setGrid(gridPane);
         paint(gridPane);
 
         scene = new Scene(borderPane);
@@ -165,7 +166,7 @@ public class Game extends Application {
         being.generateMove();
     }
 
-    public void paint(GridPane gridPane) {
+    public void setGrid(GridPane gridPane){
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 TextArea test = new TextArea();
@@ -177,6 +178,21 @@ public class Game extends Application {
                     test.setText(Integer.toString(a[i][j]));
                 }
                 gridPane.add(test, i, j);
+            }
+        }
+    }
+
+    public void paint(GridPane gridPane) {
+        TextArea test;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                if (a[i][j] == 0) {
+                    test = (TextArea)gridPane.getChildren().get(j+(i*4));
+                    test.setText("");
+                } else {
+                    test = (TextArea)gridPane.getChildren().get(j+(i*4));
+                    test.setText(Integer.toString(a[i][j]));
+                }
             }
         }
     }
@@ -296,11 +312,13 @@ public class Game extends Application {
                 being = new Being();
                 reset();
             }else{
-                if(test<5){
+                if(test<11){
                     movePlayed = 0;
+                    being.setMoved(moved);
+                    algorithm.getGenePool().add(being);
                     System.out.println(being.getScore());
                     System.out.println("size to: "+being.getMoves().size());
-                    being = algorithm.createOffspring(algorithm.selectParent(algorithm.getGenePool()),algorithm.selectParent(algorithm.getGenePool()));
+                    being = algorithm.createOffspring(algorithm.selectParent(algorithm.getGenePool(),algorithm.getFittest()),algorithm.selectParent(algorithm.getGenePool(),algorithm.getSecondFittest()));
                     test++;
                     reset();
                 }
