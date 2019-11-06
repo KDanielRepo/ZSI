@@ -27,8 +27,10 @@ public class Game extends Application {
     TextArea score;
     Algorithm algorithm;
     Being being;
-    int test = 0;
+    TextArea results;
+    int iteration = 0;
     int movePlayed = 0;
+    boolean groupSet;
 
     public void setA() {
         for (int i = 0; i < 4; i++) {
@@ -39,17 +41,17 @@ public class Game extends Application {
     }
 
     public void random() {
-        int test = 0;
+        int iteration = 0;
         randomA = ThreadLocalRandom.current().nextInt(0, 4);
         randomB = ThreadLocalRandom.current().nextInt(0, 4);
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 if (a[i][j] > 0) {
-                    test++;
+                    iteration++;
                 }
             }
         }
-        if (test == 16) {
+        if (iteration == 16) {
             return;
         }
         if (a[randomA][randomB] != 0) {
@@ -86,6 +88,7 @@ public class Game extends Application {
         noDown = false;
         noLeft = false;
         game = true;
+        groupSet = false;
 
         setA();
         randomA = ThreadLocalRandom.current().nextInt(0, 4);
@@ -155,8 +158,11 @@ public class Game extends Application {
                 reset();
             }
         });
+        results = new TextArea();
+        results.setEditable(false);
         vBox.getChildren().add(run);
         vBox.getChildren().add(score);
+        vBox.getChildren().add(results);
         borderPane.setCenter(gridPane);
         borderPane.setRight(vBox);
 
@@ -166,32 +172,32 @@ public class Game extends Application {
         being.generateMove();
     }
 
-    public void setGrid(GridPane gridPane){
+    public void setGrid(GridPane gridPane) {
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
-                TextArea test = new TextArea();
-                test.setPrefSize(150, 150);
-                test.setEditable(false);
+                TextArea textArea = new TextArea();
+                textArea.setPrefSize(150, 150);
+                textArea.setEditable(false);
                 if (a[i][j] == 0) {
-                    test.setText("");
+                    textArea.setText("");
                 } else {
-                    test.setText(Integer.toString(a[i][j]));
+                    textArea.setText(Integer.toString(a[i][j]));
                 }
-                gridPane.add(test, i, j);
+                gridPane.add(textArea, i, j);
             }
         }
     }
 
     public void paint(GridPane gridPane) {
-        TextArea test;
+        TextArea textArea;
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 if (a[i][j] == 0) {
-                    test = (TextArea)gridPane.getChildren().get(j+(i*4));
-                    test.setText("");
+                    textArea = (TextArea) gridPane.getChildren().get(j + (i * 4));
+                    textArea.setText("");
                 } else {
-                    test = (TextArea)gridPane.getChildren().get(j+(i*4));
-                    test.setText(Integer.toString(a[i][j]));
+                    textArea = (TextArea) gridPane.getChildren().get(j + (i * 4));
+                    textArea.setText(Integer.toString(a[i][j]));
                 }
             }
         }
@@ -199,10 +205,14 @@ public class Game extends Application {
 
     public void update() throws AWTException {
         if (game) {
-            if(test<4){
+            if (!groupSet) {
                 being.generateMove();
-            }else{
-                being.playMove(movePlayed);
+            } else {
+                if (movePlayed < being.getMoves().size()) {
+                    being.playMove(movePlayed);
+                } else {
+                    being.generateMove();
+                }
             }
             if (left) {
                 for (int k = 0; k < 4; k++) {
@@ -303,30 +313,34 @@ public class Game extends Application {
             }
             checkGameOver();
         } else {
-            if(test<3){
-                test++;
+            if (!groupSet && iteration < 50) {
+                iteration++;
                 being.setMoved(moved);
-                System.out.println(being.getScore());
-                System.out.println("size to: "+being.getMoves().size());
+                results.setText(results.getText() + "\n" + iteration + ": " + "score: " + being.getScore() + ", moves: " + being.getMoves().size());
                 algorithm.getGenePool().add(being);
                 being = new Being();
+                //System.out.println(algorithm.getGenePool().size());
                 reset();
-            }else{
-                if(test<11){
-                    movePlayed = 0;
-                    being.setMoved(moved);
-                    algorithm.getGenePool().add(being);
-                    System.out.println(being.getScore());
-                    System.out.println("size to: "+being.getMoves().size());
-                    being = algorithm.createOffspring(algorithm.selectParent(algorithm.getGenePool(),algorithm.getFittest()),algorithm.selectParent(algorithm.getGenePool(),algorithm.getSecondFittest()));
-                    test++;
-                    reset();
-                }
+            } else if (iteration == 50) {
+                groupSet = true;
+                algorithm.calculateGlobalFitness();
+                algorithm.calculateRFitness();
+                algorithm.getFittest();
+                algorithm.createOffspring();
+                //System.out.println(algorithm.getGenePool().size());
+                iteration = 0;
+            }
+            if(groupSet && iteration <50){
+                movePlayed = 0;
+                being.setMoved(moved);
+                results.setText(results.getText() + "\n" + iteration + ": " + "score: " + being.getScore() + ", moves: " + being.getMoves().size());
+                being = algorithm.getGenePool().get(iteration);
+                reset();
             }
         }
     }
 
-    public void reset(){
+    public void reset() {
         a = new Integer[4][4];
         up = false;
         right = false;
@@ -345,9 +359,9 @@ public class Game extends Application {
         a[randomA][randomB] = 2;
         paint(gridPane);
         try {
-            if(test<4){
+            if (iteration < 51) {
                 being.generateMove();
-            }else {
+            } else {
                 being.playMove(0);
             }
         } catch (AWTException e) {

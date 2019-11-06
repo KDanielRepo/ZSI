@@ -10,11 +10,15 @@ public class Being {
     boolean moved;
     Robot robot;
     int currentMove;
+    int fitness;
+    float pc;
+
     public Being()throws AWTException{
         robot = new Robot();
         moved = false;
         score = 0;
         moves = new ArrayList<>();
+        fitness = 0;
     }
 
     public void generateMove() throws AWTException {
@@ -78,5 +82,21 @@ public class Being {
 
     public void setScore(int score) {
         this.score = score;
+    }
+
+    public int getFitness() {
+        return fitness;
+    }
+
+    public void setFitness(int fitness) {
+        this.fitness = fitness;
+    }
+
+    public float getPc() {
+        return pc;
+    }
+
+    public void setPc(float pc) {
+        this.pc = pc;
     }
 }
