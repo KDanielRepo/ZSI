@@ -321,20 +321,24 @@ public class Game extends Application {
                 being = new Being();
                 //System.out.println(algorithm.getGenePool().size());
                 reset();
-            } else if (iteration == 50) {
+            }
+            if (iteration == 50) {
                 groupSet = true;
+                algorithm.getSumScore();
                 algorithm.calculateGlobalFitness();
                 algorithm.calculateRFitness();
                 algorithm.getFittest();
                 algorithm.createOffspring();
+                algorithm.resetPcPool();
                 //System.out.println(algorithm.getGenePool().size());
                 iteration = 0;
             }
-            if(groupSet && iteration <50){
+            if (groupSet && iteration < 50) {
                 movePlayed = 0;
                 being.setMoved(moved);
                 results.setText(results.getText() + "\n" + iteration + ": " + "score: " + being.getScore() + ", moves: " + being.getMoves().size());
                 being = algorithm.getGenePool().get(iteration);
+                iteration++;
                 reset();
             }
         }
@@ -358,15 +362,12 @@ public class Game extends Application {
         randomB = ThreadLocalRandom.current().nextInt(0, 4);
         a[randomA][randomB] = 2;
         paint(gridPane);
-        try {
-            if (iteration < 51) {
-                being.generateMove();
-            } else {
-                being.playMove(0);
-            }
-        } catch (AWTException e) {
-            e.printStackTrace();
+        if (iteration < 51) {
+            being.generateMove();
+        } else {
+            being.playMove(0);
         }
+
     }
 
     public void checkGameOver() {

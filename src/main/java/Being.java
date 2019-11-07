@@ -21,7 +21,7 @@ public class Being {
         fitness = 0;
     }
 
-    public void generateMove() throws AWTException {
+    public void generateMove() {
         int move = ThreadLocalRandom.current().nextInt(0,4);
         if(move==0){
             robot.keyPress(KeyEvent.VK_UP);
