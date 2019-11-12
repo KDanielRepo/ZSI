@@ -9,7 +9,7 @@ public class Algorithm {
     private List<Being> pcPool = new ArrayList<>();
     private Being best;
 
-    public Algorithm() throws AWTException {
+    public Algorithm() {
 
     }
 
@@ -34,6 +34,12 @@ public class Algorithm {
                 getGenePool().remove(i);
             }
         }
+        //uzupelnienie puli do liczby parzystej
+        while(getPcPool().size()<25 || getPcPool().size()%2!=0){
+            int random = ThreadLocalRandom.current().nextInt(0,getGenePool().size());
+            getPcPool().add(getGenePool().get(random));
+            getGenePool().remove(random);
+        }
         //sprawdzenie czy najlepszy osobnik jest w puli
         int testt = 0;
         for (int i = 0; i < getPcPool().size(); i++) {
@@ -44,12 +50,6 @@ public class Algorithm {
                 getPcPool().remove(ThreadLocalRandom.current().nextInt(0,getPcPool().size()));
                 getPcPool().add(best);
             }
-        }
-        //uzupelnienie puli do liczby parzystej
-        while(getPcPool().size()<25 || getPcPool().size()%2!=0){
-            int random = ThreadLocalRandom.current().nextInt(0,getGenePool().size());
-            getPcPool().add(getGenePool().get(random));
-            getGenePool().remove(random);
         }
         //krzyzowanie
         int[] a = new int[24];
@@ -72,26 +72,21 @@ public class Algorithm {
                 }
             }
             Being being2 = getPcPool().get(random2);
-            Being child1 = null;
-            Being child2 = null;
-            try {
-                child1 = new Being();
-                child2 = new Being();
-            } catch (AWTException e) {
-                e.printStackTrace();
-            }
-            int cut = ThreadLocalRandom.current().nextInt(0,(being1.getMoves().size()+being2.getMoves().size())/4);
+            Being child1 = new Being();
+            Being child2 = new Being();
+            int cut = ThreadLocalRandom.current().nextInt(0,(being1.getMoves().size()/2));
+            int cut2 = ThreadLocalRandom.current().nextInt(0,being2.getMoves().size()/2);
             for (int k = 0; k < cut; k++) {
                 child1.getMoves().add(being1.getMoves().get(k));
             }
-            for(int k = 0; k<cut;k++){
+            for(int k = 0; k<cut2;k++){
                 child2.getMoves().add(being2.getMoves().get(k));
-            }
-            for (int k = cut; k < being2.getMoves().size(); k++) {
-                child1.getMoves().add(being2.getMoves().get(k));
             }
             for (int k = cut; k < being1.getMoves().size(); k++) {
                 child2.getMoves().add(being1.getMoves().get(k));
+            }
+            for (int k = cut2; k < being2.getMoves().size(); k++) {
+                child1.getMoves().add(being2.getMoves().get(k));
             }
             getGenePool().add(child1);
             getGenePool().add(child2);
@@ -100,19 +95,19 @@ public class Algorithm {
     public void resetPcPool(){
         pcPool = new ArrayList<>();
     }
-    public void getSumScore(){
+    public void getAverageFitness(){
         int sum=0;
         for (int i = 0; i < getGenePool().size(); i++) {
             sum+=getGenePool().get(i).getScore();
         }
-        System.out.println(sum);
+        System.out.println(sum/getGenePool().size());
     }
     public int calculateGlobalFitness(){
         int sum = 0;
         for (int i = 0; i < getGenePool().size(); i++) {
             sum+=getGenePool().get(i).getScore();
         }
-        return sum/getGenePool().size();
+        return sum;
     }
     public void calculateRFitness(){
         for (int i = 0; i < getGenePool().size(); i++) {

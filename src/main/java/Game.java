@@ -31,6 +31,7 @@ public class Game extends Application {
     int iteration = 0;
     int movePlayed = 0;
     boolean groupSet;
+    boolean paused;
 
     public void setA() {
         for (int i = 0; i < 4; i++) {
@@ -89,6 +90,7 @@ public class Game extends Application {
         noLeft = false;
         game = true;
         groupSet = false;
+        paused = true;
 
         setA();
         randomA = ThreadLocalRandom.current().nextInt(0, 4);
@@ -115,11 +117,7 @@ public class Game extends Application {
                         left = true;
                         break;
                 }
-                try {
-                    update();
-                } catch (AWTException e) {
-                    e.printStackTrace();
-                }
+                update();
                 scene.getRoot().requestFocus();
             }
         });
@@ -140,27 +138,32 @@ public class Game extends Application {
                         left = false;
                         break;
                 }
-                try {
-                    update();
-                } catch (AWTException e) {
-                    e.printStackTrace();
-                }
+                update();
                 scene.getRoot().requestFocus();
             }
         });
 
         score = new TextArea();
-        Button run = new Button();
-        run.setText("reset");
+        Button run = new Button("reset");
         run.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 reset();
             }
         });
+        Button pause = new Button("pause");
+        pause.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                paused = !paused;
+                System.out.println(paused);
+                update();
+            }
+        });
         results = new TextArea();
         results.setEditable(false);
         vBox.getChildren().add(run);
+        vBox.getChildren().add(pause);
         vBox.getChildren().add(score);
         vBox.getChildren().add(results);
         borderPane.setCenter(gridPane);
@@ -169,7 +172,7 @@ public class Game extends Application {
         primaryStage.setTitle("ZSI");
         primaryStage.setScene(scene);
         primaryStage.show();
-        being.generateMove();
+        //being.generateMove();
     }
 
     public void setGrid(GridPane gridPane) {
@@ -203,143 +206,144 @@ public class Game extends Application {
         }
     }
 
-    public void update() throws AWTException {
-        if (game) {
-            if (!groupSet) {
-                being.generateMove();
-            } else {
-                if (movePlayed < being.getMoves().size()) {
-                    being.playMove(movePlayed);
-                } else {
+    public void update() {
+        if (!paused) {
+            if (game) {
+                if (!groupSet) {
                     being.generateMove();
+                } else {
+                    if (movePlayed < being.getMoves().size()) {
+                        being.playMove(movePlayed);
+                    } else {
+                        being.generateMove();
+                    }
                 }
-            }
-            if (left) {
-                for (int k = 0; k < 4; k++) {
-                    for (int i = 0; i < 3; i++) {
-                        for (int j = 0; j < 4; j++) {
-                            if (a[i][j].equals(a[i + 1][j]) && (a[i][j] != 0)) {
-                                a[i][j] = a[i][j] * 2;
-                                a[i + 1][j] = 0;
-                                moved = true;
-                                noLeft = false;
-                            }
-                            if (a[i][j] == 0) {
-                                if (a[i + 1][j] != 0) {
-                                    a[i][j] = a[i + 1][j];
+                if (left) {
+                    for (int k = 0; k < 4; k++) {
+                        for (int i = 0; i < 3; i++) {
+                            for (int j = 0; j < 4; j++) {
+                                if (a[i][j].equals(a[i + 1][j]) && (a[i][j] != 0)) {
+                                    a[i][j] = a[i][j] * 2;
                                     a[i + 1][j] = 0;
                                     moved = true;
                                     noLeft = false;
                                 }
+                                if (a[i][j] == 0) {
+                                    if (a[i + 1][j] != 0) {
+                                        a[i][j] = a[i + 1][j];
+                                        a[i + 1][j] = 0;
+                                        moved = true;
+                                        noLeft = false;
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
-            if (right) {
-                for (int k = 0; k < 4; k++) {
-                    for (int i = 3; i > 0; i--) {
-                        for (int j = 0; j < 4; j++) {
-                            if (a[i][j].equals(a[i - 1][j]) && (a[i][j] != 0)) {
-                                a[i][j] = a[i][j] * 2;
-                                a[i - 1][j] = 0;
-                                moved = true;
-                                noRight = false;
-                            }
-                            if (a[i][j] == 0) {
-                                if (a[i - 1][j] != 0) {
-                                    a[i][j] = a[i - 1][j];
+                if (right) {
+                    for (int k = 0; k < 4; k++) {
+                        for (int i = 3; i > 0; i--) {
+                            for (int j = 0; j < 4; j++) {
+                                if (a[i][j].equals(a[i - 1][j]) && (a[i][j] != 0)) {
+                                    a[i][j] = a[i][j] * 2;
                                     a[i - 1][j] = 0;
                                     moved = true;
                                     noRight = false;
                                 }
+                                if (a[i][j] == 0) {
+                                    if (a[i - 1][j] != 0) {
+                                        a[i][j] = a[i - 1][j];
+                                        a[i - 1][j] = 0;
+                                        moved = true;
+                                        noRight = false;
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
-            if (up) {
-                for (int k = 0; k < 4; k++) {
-                    for (int i = 0; i < 4; i++) {
-                        for (int j = 0; j < 3; j++) {
-                            if (a[i][j].equals(a[i][j + 1]) && (a[i][j] != 0)) {
-                                a[i][j] = a[i][j] * 2;
-                                a[i][j + 1] = 0;
-                                moved = true;
-                                noUp = false;
-                            }
-                            if (a[i][j] == 0) {
-                                if (a[i][j + 1] != 0) {
-                                    a[i][j] = a[i][j + 1];
+                if (up) {
+                    for (int k = 0; k < 4; k++) {
+                        for (int i = 0; i < 4; i++) {
+                            for (int j = 0; j < 3; j++) {
+                                if (a[i][j].equals(a[i][j + 1]) && (a[i][j] != 0)) {
+                                    a[i][j] = a[i][j] * 2;
                                     a[i][j + 1] = 0;
                                     moved = true;
                                     noUp = false;
                                 }
-                            }
-                        }
-                    }
-                }
-            }
-            if (down) {
-                for (int k = 0; k < 4; k++) {
-                    for (int i = 0; i < 4; i++) {
-                        for (int j = 3; j > 0; j--) {
-                            if (a[i][j].equals(a[i][j - 1]) && (a[i][j] != 0)) {
-                                a[i][j] = a[i][j] * 2;
-                                a[i][j - 1] = 0;
-                                moved = true;
-                                noDown = false;
-                            }
-                            if (a[i][j] == 0) {
-                                if (a[i][j - 1] != 0) {
-                                    a[i][j] = a[i][j - 1];
-                                    a[i][j - 1] = 0;
-                                    moved = true;
-                                    noDown = false;
+                                if (a[i][j] == 0) {
+                                    if (a[i][j + 1] != 0) {
+                                        a[i][j] = a[i][j + 1];
+                                        a[i][j + 1] = 0;
+                                        moved = true;
+                                        noUp = false;
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
-            movePlayed++;
-            if (moved) {
-                random();
-                paint(gridPane);
-                calculateScore();
-                being.setMoved(moved);
-                being.setScore(Integer.parseInt(score.getText()));
-                moved = false;
-            }
-            checkGameOver();
-        } else {
-            if (!groupSet && iteration < 50) {
-                iteration++;
-                being.setMoved(moved);
-                results.setText(results.getText() + "\n" + iteration + ": " + "score: " + being.getScore() + ", moves: " + being.getMoves().size());
-                algorithm.getGenePool().add(being);
-                being = new Being();
-                //System.out.println(algorithm.getGenePool().size());
-                reset();
-            }
-            if (iteration == 50) {
-                groupSet = true;
-                algorithm.getSumScore();
-                algorithm.calculateGlobalFitness();
-                algorithm.calculateRFitness();
-                algorithm.getFittest();
-                algorithm.createOffspring();
-                algorithm.resetPcPool();
-                //System.out.println(algorithm.getGenePool().size());
-                iteration = 0;
-            }
-            if (groupSet && iteration < 50) {
-                movePlayed = 0;
-                being.setMoved(moved);
-                results.setText(results.getText() + "\n" + iteration + ": " + "score: " + being.getScore() + ", moves: " + being.getMoves().size());
-                being = algorithm.getGenePool().get(iteration);
-                iteration++;
-                reset();
+                if (down) {
+                    for (int k = 0; k < 4; k++) {
+                        for (int i = 0; i < 4; i++) {
+                            for (int j = 3; j > 0; j--) {
+                                if (a[i][j].equals(a[i][j - 1]) && (a[i][j] != 0)) {
+                                    a[i][j] = a[i][j] * 2;
+                                    a[i][j - 1] = 0;
+                                    moved = true;
+                                    noDown = false;
+                                }
+                                if (a[i][j] == 0) {
+                                    if (a[i][j - 1] != 0) {
+                                        a[i][j] = a[i][j - 1];
+                                        a[i][j - 1] = 0;
+                                        moved = true;
+                                        noDown = false;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                movePlayed++;
+                if (moved) {
+                    random();
+                    paint(gridPane);
+                    calculateScore();
+                    being.setMoved(moved);
+                    being.setScore(Integer.parseInt(score.getText()));
+                    moved = false;
+                }
+                checkGameOver();
+            } else {
+                if (!groupSet && iteration < 50) {
+                    iteration++;
+                    being.setMoved(moved);
+                    results.setText(results.getText() + "\n" + iteration + ": " + "score: " + being.getScore() + ", moves: " + being.getMoves().size());
+                    algorithm.getGenePool().add(being);
+                    being = new Being();
+                    //System.out.println(algorithm.getGenePool().size());
+                    reset();
+                }
+                if (iteration == 50) {
+                    groupSet = true;
+                    algorithm.getAverageFitness();
+                    algorithm.calculateGlobalFitness();
+                    algorithm.calculateRFitness();
+                    algorithm.getFittest();
+                    algorithm.createOffspring();
+                    algorithm.resetPcPool();
+                    iteration = 0;
+                }
+                if (groupSet && iteration < 50) {
+                    movePlayed = 0;
+                    being.setMoved(moved);
+                    results.setText(results.getText() + "\n" + iteration + ": " + "score: " + being.getScore() + ", moves: " + being.getMoves().size());
+                    being = algorithm.getGenePool().get(iteration);
+                    iteration++;
+                    reset();
+                }
             }
         }
     }
@@ -362,7 +366,7 @@ public class Game extends Application {
         randomB = ThreadLocalRandom.current().nextInt(0, 4);
         a[randomA][randomB] = 2;
         paint(gridPane);
-        if (iteration < 51) {
+        if (!groupSet) {
             being.generateMove();
         } else {
             being.playMove(0);
