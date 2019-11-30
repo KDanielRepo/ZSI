@@ -7,10 +7,14 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Algorithm {
     private List<Being> genePool = new ArrayList<>();
     private List<Being> pcPool = new ArrayList<>();
-    private Being best;
+
+    public Being getBest() {
+        return best;
+    }
+
+    private Being best = new Being();
 
     public Algorithm() {
-
     }
 
     public Being selectParent(List<Being> beings,int fit){
@@ -29,13 +33,13 @@ public class Algorithm {
         }
         //wybieranie osobnikow do puli c
         for (int i = 0; i < getGenePool().size(); i++) {
-            if(getGenePool().get(i).getPc()>0.6f&&getPcPool().size()<25){
+            if(getGenePool().get(i).getPc()>0.6f&&getPcPool().size()<150){
                 getPcPool().add(getGenePool().get(i));
                 getGenePool().remove(i);
             }
         }
         //uzupelnienie puli do liczby parzystej
-        while(getPcPool().size()<25 || getPcPool().size()%2!=0){
+        while(getPcPool().size()<150 || getPcPool().size()%2!=0){
             int random = ThreadLocalRandom.current().nextInt(0,getGenePool().size());
             getPcPool().add(getGenePool().get(random));
             getGenePool().remove(random);
@@ -52,23 +56,23 @@ public class Algorithm {
             }
         }
         //krzyzowanie
-        int[] a = new int[24];
+        int[] a = new int[150];
         for (int i = 0; i < getPcPool().size()/2; i++) {
-            int random = ThreadLocalRandom.current().nextInt(0,24);
+            int random = ThreadLocalRandom.current().nextInt(0,150);
             if(a[random]==0){
                 a[random]=1;
             }else{
                 while (a[random]!=0){
-                    random = ThreadLocalRandom.current().nextInt(0,24);
+                    random = ThreadLocalRandom.current().nextInt(0,150);
                 }
             }
             Being being1 = getPcPool().get(random);
-            int random2 = ThreadLocalRandom.current().nextInt(0,24);
+            int random2 = ThreadLocalRandom.current().nextInt(0,150);
             if(a[random2]==0){
                 a[random2]=1;
             }else{
                 while (a[random2]!=0){
-                    random2 = ThreadLocalRandom.current().nextInt(0,24);
+                    random2 = ThreadLocalRandom.current().nextInt(0,150);
                 }
             }
             Being being2 = getPcPool().get(random2);
@@ -94,6 +98,22 @@ public class Algorithm {
     }
     public void resetPcPool(){
         pcPool = new ArrayList<>();
+    }
+    public void mutate(){
+        for (int i = 0; i < getGenePool().size(); i++) {
+            for (int j = 0; j < getGenePool().get(i).getMoves().size(); j++) {
+                float temp = (float) getGenePool().get(i).getMoves().size();
+                float probability = 1/temp;
+                float random = ThreadLocalRandom.current().nextFloat()/100;
+                if(random<probability){
+                    int rrandom = ThreadLocalRandom.current().nextInt(0,3);
+                    while (rrandom==getGenePool().get(i).getMoves().get(j)){
+                        rrandom = ThreadLocalRandom.current().nextInt(0,3);
+                    }
+                    getGenePool().get(i).setMove(j,rrandom);
+                }
+            }
+        }
     }
     public void getAverageFitness(){
         int sum=0;
@@ -123,9 +143,13 @@ public class Algorithm {
         for (int i = 0; i < getGenePool().size(); i++) {
             if(fit<getGenePool().get(i).getScore()){
                 fit = getGenePool().get(i).getScore();
-                best = getGenePool().get(i);
+                if(best.getScore()<fit){
+                    System.out.println("tempbest: "+best.getScore()+" , gentemp: "+fit);
+                    best = getGenePool().get(i);
+                }
             }
         }
+        System.out.println("best of this gen: "+fit);
         return fit;
     }
     public int getSecondFittest(){

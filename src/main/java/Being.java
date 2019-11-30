@@ -75,6 +75,9 @@ public class Being {
     public List<Integer> getMoves() {
         return moves;
     }
+    public void setMove(int a,int b){
+        moves.set(a,b);
+    }
 
     public void setMoves(List<Integer> moves) {
         this.moves = moves;

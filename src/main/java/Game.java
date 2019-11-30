@@ -312,37 +312,44 @@ public class Game extends Application {
                     paint(gridPane);
                     calculateScore();
                     being.setMoved(moved);
-                    being.setScore(Integer.parseInt(score.getText()));
-                    moved = false;
+                    if(groupSet&&being==algorithm.getBest()){
+                        game = false;
+                    }else {
+                        being.setScore(Integer.parseInt(score.getText()));
+                        moved = false;
+                    }
                 }
                 checkGameOver();
             } else {
-                if (!groupSet && iteration < 50) {
+                //napraw to
+                if (!groupSet && iteration < 300) {
                     iteration++;
                     being.setMoved(moved);
                     results.setText(results.getText() + "\n" + iteration + ": " + "score: " + being.getScore() + ", moves: " + being.getMoves().size());
                     algorithm.getGenePool().add(being);
                     being = new Being();
-                    //System.out.println(algorithm.getGenePool().size());
                     reset();
-                }
-                if (iteration == 50) {
-                    groupSet = true;
-                    algorithm.getAverageFitness();
-                    algorithm.calculateGlobalFitness();
-                    algorithm.calculateRFitness();
-                    algorithm.getFittest();
-                    algorithm.createOffspring();
-                    algorithm.resetPcPool();
-                    iteration = 0;
-                }
-                if (groupSet && iteration < 50) {
+                }else if (groupSet && iteration < 300) {
+                    //miedzy tu
                     movePlayed = 0;
                     being.setMoved(moved);
                     results.setText(results.getText() + "\n" + iteration + ": " + "score: " + being.getScore() + ", moves: " + being.getMoves().size());
                     being = algorithm.getGenePool().get(iteration);
                     iteration++;
                     reset();
+                    //a tu
+                }
+                if (iteration == 300) {
+                    groupSet = true;
+                    algorithm.getAverageFitness();
+                    algorithm.calculateGlobalFitness();
+                    algorithm.calculateRFitness();
+                    algorithm.getFittest();
+                    algorithm.createOffspring();
+                    algorithm.mutate();
+                    algorithm.resetPcPool();
+                    System.out.println("best: "+algorithm.getBest().getScore());
+                    iteration = 0;
                 }
             }
         }
