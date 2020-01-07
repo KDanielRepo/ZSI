@@ -2,6 +2,7 @@ import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
+import javafx.scene.chart.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
@@ -9,10 +10,12 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import java.awt.*;
+//import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class Game extends Application {
+public class Game extends Application implements Runnable{
     Integer[][] a = new Integer[4][4];
     Integer randomA;
     Integer randomB;
@@ -30,8 +33,18 @@ public class Game extends Application {
     TextArea results;
     int iteration = 0;
     int movePlayed = 0;
+    int generation = 0;
     boolean groupSet;
     boolean paused;
+    private String l = "left";
+    private String u = "up";
+    private String r = "right";
+    private String d = "down";
+    XYChart.Series series;
+    TableViewHelper t;
+    List<XYChart.Series> seriesList = new ArrayList<>();
+    BarChart<String,Number> barChart;
+    List<Being> testBeings = new ArrayList<>();
 
     public void setA() {
         for (int i = 0; i < 4; i++) {
@@ -72,6 +85,17 @@ public class Game extends Application {
     }
 
     public void start(Stage primaryStage) throws Exception {
+        final CategoryAxis xAxis = new CategoryAxis();
+        final NumberAxis yAxis = new NumberAxis();
+        barChart = new BarChart<String, Number>(xAxis,yAxis);
+        barChart.setTitle("wykres");
+        xAxis.setLabel("kierunek ruchu");
+        yAxis.setLabel("ilość ruchu");
+
+        series = new XYChart.Series();
+        series.setName("test");
+        barChart.getData().addAll(series);
+
         BorderPane borderPane = new BorderPane();
         borderPane.setPrefSize(1000, 800);
         VBox vBox = new VBox();
@@ -118,7 +142,7 @@ public class Game extends Application {
                         break;
                 }
                 update();
-                scene.getRoot().requestFocus();
+                //scene.getRoot().requestFocus();
             }
         });
         scene.setOnKeyReleased(new EventHandler<javafx.scene.input.KeyEvent>() {
@@ -139,7 +163,7 @@ public class Game extends Application {
                         break;
                 }
                 update();
-                scene.getRoot().requestFocus();
+                //scene.getRoot().requestFocus();
             }
         });
 
@@ -157,15 +181,66 @@ public class Game extends Application {
             public void handle(ActionEvent event) {
                 paused = !paused;
                 System.out.println(paused);
+                scene.getRoot().requestFocus();
                 update();
             }
         });
+
         results = new TextArea();
         results.setEditable(false);
+        t = new TableViewHelper();
+
+        Button show = new Button("show selected result");
+        show.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if(t!=null&&seriesList!=null&&t.getSelectionModel().getFocusedIndex()>-1){
+                    barChart.getData().setAll(seriesList.get(t.getSelectionModel().getFocusedIndex()));
+                }
+            }
+        });
+
+        Button graph = new Button("Show time graph");
+        graph.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                Stage graphStage = new Stage();
+                BorderPane graphPane = new BorderPane();
+                int test = t.getSelectionModel().getFocusedIndex();
+                //final NumberAxis xAxis = new NumberAxis(-1, 4, 1);
+                //final NumberAxis yAxis = new NumberAxis(-5, testBeings.get(test).getMoves().size()+5, 100);
+                final NumberAxis xAxis = new NumberAxis();
+                xAxis.setAutoRanging(false);
+                xAxis.setLowerBound(0);
+                xAxis.setUpperBound(testBeings.get(test).getMoves().size()+5);
+                final NumberAxis yAxis = new NumberAxis();
+                //final ScatterChart<Number,Number> sc = new ScatterChart<Number,Number>(xAxis,yAxis);
+                final LineChart<Number,Number> lineChart =
+                        new LineChart<Number,Number>(xAxis,yAxis);
+                xAxis.setLabel("Typ ruchu");
+                yAxis.setLabel("Numer ruchu");
+                lineChart.setTitle("Time graph");
+
+                XYChart.Series series = new XYChart.Series();
+                for (int i = 0; i <  testBeings.get(test).getMoves().size(); i++) {
+                    series.getData().add(new XYChart.Data(i,testBeings.get(test).getMoves().get(i)));
+                }
+                lineChart.getData().add(series);
+                graphPane.setCenter(lineChart);
+                Scene graphScene = new Scene(graphPane);
+                graphStage.setTitle("Time graph");
+                graphStage.setScene(graphScene);
+                graphStage.show();
+            }
+        });
+
         vBox.getChildren().add(run);
         vBox.getChildren().add(pause);
         vBox.getChildren().add(score);
-        vBox.getChildren().add(results);
+        vBox.getChildren().add(graph);
+        vBox.getChildren().add(show);
+        vBox.getChildren().add(t);
+        vBox.getChildren().add(barChart);
         borderPane.setCenter(gridPane);
         borderPane.setRight(vBox);
 
@@ -316,11 +391,23 @@ public class Game extends Application {
                         game = false;
                     }else {
                         being.setScore(Integer.parseInt(score.getText()));
+                        being.setGen(generation);
+                        being.setLp(iteration);
+                        being.setAmount(being.getMoves().size());
                         moved = false;
                     }
                 }
                 checkGameOver();
             } else {
+                testBeings.add(being);
+                series.getData().add(new XYChart.Data(u,being.getUpMoves()));
+                series.getData().add(new XYChart.Data(r,being.getRightMoves()));
+                series.getData().add(new XYChart.Data(d,being.getDownMoves()));
+                series.getData().add(new XYChart.Data(l,being.getLeftMoves()));
+                seriesList.add(series);
+                series = new XYChart.Series();
+                t.addRow(being);
+                //paused=true;
                 //napraw to
                 if (!groupSet && iteration < 300) {
                     iteration++;
@@ -329,6 +416,7 @@ public class Game extends Application {
                     algorithm.getGenePool().add(being);
                     being = new Being();
                     reset();
+                    //paused=true;
                 }else if (groupSet && iteration < 300) {
                     //miedzy tu
                     movePlayed = 0;
@@ -337,6 +425,7 @@ public class Game extends Application {
                     being = algorithm.getGenePool().get(iteration);
                     iteration++;
                     reset();
+                    //paused=true;
                     //a tu
                 }
                 if (iteration == 300) {
@@ -350,6 +439,10 @@ public class Game extends Application {
                     algorithm.resetPcPool();
                     System.out.println("best: "+algorithm.getBest().getScore());
                     iteration = 0;
+                    generation++;
+                    if(generation==1){
+                        paused=true;
+                    }
                 }
             }
         }
@@ -429,5 +522,11 @@ public class Game extends Application {
 
     public static void main(String[] args) {
         launch(Game.class, args);
+        //launch(Test.class,args);
+    }
+
+    @Override
+    public void run() {
+
     }
 }
