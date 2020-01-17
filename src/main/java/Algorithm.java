@@ -17,7 +17,7 @@ public class Algorithm {
     public Algorithm() {
     }
 
-    public Being selectParent(List<Being> beings,int fit){
+    /*public Being selectParent(List<Being> beings,int fit){
         Being parent = null;
         for (int i = 0; i < getGenePool().size(); i++) {
             if(fit==getGenePool().get(i).getScore()){
@@ -25,7 +25,7 @@ public class Algorithm {
             }
         }
         return parent;
-    }
+    }*/
     public void createOffspring() {
         //ustawianie PC kazdego osobnika
         for (int i = 0; i < getGenePool().size(); i++) {

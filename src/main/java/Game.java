@@ -4,9 +4,11 @@ import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.chart.*;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -31,6 +33,7 @@ public class Game extends Application implements Runnable{
     Algorithm algorithm;
     Being being;
     TextArea results;
+    TextArea generationNumber;
     int iteration = 0;
     int movePlayed = 0;
     int generation = 0;
@@ -71,7 +74,12 @@ public class Game extends Application implements Runnable{
         if (a[randomA][randomB] != 0) {
             random();
         }
-        a[randomA][randomB] = 2;
+        int twoOrFour = ThreadLocalRandom.current().nextInt(0,4);
+        if(twoOrFour==3){
+            a[randomA][randomB] = 4;
+        }else{
+            a[randomA][randomB] = 2;
+        }
     }
 
     public void calculateScore() {
@@ -119,7 +127,9 @@ public class Game extends Application implements Runnable{
         setA();
         randomA = ThreadLocalRandom.current().nextInt(0, 4);
         randomB = ThreadLocalRandom.current().nextInt(0, 4);
-        a[randomA][randomB] = 2;
+        random();
+        random();
+        //a[randomA][randomB] = 2;
         setGrid(gridPane);
         paint(gridPane);
 
@@ -168,6 +178,10 @@ public class Game extends Application implements Runnable{
         });
 
         score = new TextArea();
+        score.setEditable(false);
+        HBox hBox = new HBox();
+        Label label = new Label("Podaj ilość generacji: ");
+        generationNumber = new TextArea();
         Button run = new Button("reset");
         run.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -176,6 +190,7 @@ public class Game extends Application implements Runnable{
             }
         });
         Button pause = new Button("pause");
+        hBox.getChildren().addAll(run,pause);
         pause.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -234,13 +249,19 @@ public class Game extends Application implements Runnable{
             }
         });
 
-        vBox.getChildren().add(run);
-        vBox.getChildren().add(pause);
+        //vBox.getChildren().add(run);
+        //vBox.getChildren().add(pause);
+        /*vBox.getChildren().add(hBox);
+        vBox.getChildren().add(label);
+        vBox.getChildren().add(generationNumber);
         vBox.getChildren().add(score);
         vBox.getChildren().add(graph);
         vBox.getChildren().add(show);
         vBox.getChildren().add(t);
-        vBox.getChildren().add(barChart);
+        vBox.getChildren().add(barChart);*/
+        HBox hBox1 = new HBox();
+        hBox1.getChildren().addAll(graph,show);
+        vBox.getChildren().addAll(hBox,label,generationNumber,score,hBox1,t,barChart);
         borderPane.setCenter(gridPane);
         borderPane.setRight(vBox);
 
@@ -440,7 +461,8 @@ public class Game extends Application implements Runnable{
                     System.out.println("best: "+algorithm.getBest().getScore());
                     iteration = 0;
                     generation++;
-                    if(generation==1){
+                    generationNumber.setText(Integer.toString(Integer.parseInt(generationNumber.getText())-1));
+                    if(Integer.parseInt(generationNumber.getText())==0){
                         paused=true;
                     }
                 }
@@ -464,7 +486,9 @@ public class Game extends Application implements Runnable{
         setA();
         randomA = ThreadLocalRandom.current().nextInt(0, 4);
         randomB = ThreadLocalRandom.current().nextInt(0, 4);
-        a[randomA][randomB] = 2;
+        random();
+        random();
+        //a[randomA][randomB] = 2;
         paint(gridPane);
         if (!groupSet) {
             being.generateMove();
