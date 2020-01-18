@@ -12,12 +12,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-//import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class Game extends Application implements Runnable{
+public class Game extends Application{
     Integer[][] a = new Integer[4][4];
     Integer randomA;
     Integer randomB;
@@ -96,12 +95,11 @@ public class Game extends Application implements Runnable{
         final CategoryAxis xAxis = new CategoryAxis();
         final NumberAxis yAxis = new NumberAxis();
         barChart = new BarChart<String, Number>(xAxis,yAxis);
-        barChart.setTitle("wykres");
-        xAxis.setLabel("kierunek ruchu");
-        yAxis.setLabel("ilość ruchu");
+        barChart.setTitle("Chart");
+        xAxis.setLabel("Direction of move");
+        yAxis.setLabel("Ammount of moves");
 
         series = new XYChart.Series();
-        series.setName("test");
         barChart.getData().addAll(series);
 
         BorderPane borderPane = new BorderPane();
@@ -111,27 +109,12 @@ public class Game extends Application implements Runnable{
         gridPane.setPrefSize(600, 600);
         being = new Being();
         algorithm = new Algorithm();
-        up = false;
-        right = false;
-        down = false;
-        left = false;
-        moved = false;
-        noUp = false;
-        noRight = false;
-        noDown = false;
-        noLeft = false;
-        game = true;
-        groupSet = false;
-        paused = true;
 
+        paused = true;
         setA();
-        randomA = ThreadLocalRandom.current().nextInt(0, 4);
-        randomB = ThreadLocalRandom.current().nextInt(0, 4);
-        random();
-        random();
-        //a[randomA][randomB] = 2;
+        groupSet = false;
         setGrid(gridPane);
-        paint(gridPane);
+        reset();
 
         scene = new Scene(borderPane);
         scene.setOnKeyPressed(new EventHandler<javafx.scene.input.KeyEvent>() {
@@ -152,7 +135,6 @@ public class Game extends Application implements Runnable{
                         break;
                 }
                 update();
-                //scene.getRoot().requestFocus();
             }
         });
         scene.setOnKeyReleased(new EventHandler<javafx.scene.input.KeyEvent>() {
@@ -173,29 +155,32 @@ public class Game extends Application implements Runnable{
                         break;
                 }
                 update();
-                //scene.getRoot().requestFocus();
             }
         });
 
         score = new TextArea();
         score.setEditable(false);
         HBox hBox = new HBox();
-        Label label = new Label("Podaj ilość generacji: ");
+        Label label = new Label("Set Number of generations: ");
         generationNumber = new TextArea();
-        Button run = new Button("reset");
+        Button run = new Button("Reset");
         run.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 reset();
             }
         });
-        Button pause = new Button("pause");
+        final Button pause = new Button("Start");
         hBox.getChildren().addAll(run,pause);
         pause.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 paused = !paused;
-                System.out.println(paused);
+                if(paused){
+                    pause.setText("Start");
+                }else{
+                    pause.setText("Pause");
+                }
                 scene.getRoot().requestFocus();
                 update();
             }
@@ -220,20 +205,18 @@ public class Game extends Application implements Runnable{
             @Override
             public void handle(ActionEvent event) {
                 Stage graphStage = new Stage();
+                graphStage.setMinWidth(1920);
                 BorderPane graphPane = new BorderPane();
                 int test = t.getSelectionModel().getFocusedIndex();
-                //final NumberAxis xAxis = new NumberAxis(-1, 4, 1);
-                //final NumberAxis yAxis = new NumberAxis(-5, testBeings.get(test).getMoves().size()+5, 100);
                 final NumberAxis xAxis = new NumberAxis();
                 xAxis.setAutoRanging(false);
                 xAxis.setLowerBound(0);
                 xAxis.setUpperBound(testBeings.get(test).getMoves().size()+5);
                 final NumberAxis yAxis = new NumberAxis();
-                //final ScatterChart<Number,Number> sc = new ScatterChart<Number,Number>(xAxis,yAxis);
                 final LineChart<Number,Number> lineChart =
                         new LineChart<Number,Number>(xAxis,yAxis);
-                xAxis.setLabel("Typ ruchu");
-                yAxis.setLabel("Numer ruchu");
+                xAxis.setLabel("Type of move");
+                yAxis.setLabel("Number of move");
                 lineChart.setTitle("Time graph");
 
                 XYChart.Series series = new XYChart.Series();
@@ -249,16 +232,6 @@ public class Game extends Application implements Runnable{
             }
         });
 
-        //vBox.getChildren().add(run);
-        //vBox.getChildren().add(pause);
-        /*vBox.getChildren().add(hBox);
-        vBox.getChildren().add(label);
-        vBox.getChildren().add(generationNumber);
-        vBox.getChildren().add(score);
-        vBox.getChildren().add(graph);
-        vBox.getChildren().add(show);
-        vBox.getChildren().add(t);
-        vBox.getChildren().add(barChart);*/
         HBox hBox1 = new HBox();
         hBox1.getChildren().addAll(graph,show);
         vBox.getChildren().addAll(hBox,label,generationNumber,score,hBox1,t,barChart);
@@ -268,7 +241,6 @@ public class Game extends Application implements Runnable{
         primaryStage.setTitle("ZSI");
         primaryStage.setScene(scene);
         primaryStage.show();
-        //being.generateMove();
     }
 
     public void setGrid(GridPane gridPane) {
@@ -428,7 +400,6 @@ public class Game extends Application implements Runnable{
                 seriesList.add(series);
                 series = new XYChart.Series();
                 t.addRow(being);
-                //paused=true;
                 //napraw to
                 if (!groupSet && iteration < 300) {
                     iteration++;
@@ -437,7 +408,6 @@ public class Game extends Application implements Runnable{
                     algorithm.getGenePool().add(being);
                     being = new Being();
                     reset();
-                    //paused=true;
                 }else if (groupSet && iteration < 300) {
                     //miedzy tu
                     movePlayed = 0;
@@ -446,8 +416,6 @@ public class Game extends Application implements Runnable{
                     being = algorithm.getGenePool().get(iteration);
                     iteration++;
                     reset();
-                    //paused=true;
-                    //a tu
                 }
                 if (iteration == 300) {
                     groupSet = true;
@@ -458,7 +426,7 @@ public class Game extends Application implements Runnable{
                     algorithm.createOffspring();
                     algorithm.mutate();
                     algorithm.resetPcPool();
-                    System.out.println("best: "+algorithm.getBest().getScore());
+                    //System.out.println("best: "+algorithm.getBest().getScore());
                     iteration = 0;
                     generation++;
                     generationNumber.setText(Integer.toString(Integer.parseInt(generationNumber.getText())-1));
@@ -484,11 +452,8 @@ public class Game extends Application implements Runnable{
         game = true;
 
         setA();
-        randomA = ThreadLocalRandom.current().nextInt(0, 4);
-        randomB = ThreadLocalRandom.current().nextInt(0, 4);
         random();
         random();
-        //a[randomA][randomB] = 2;
         paint(gridPane);
         if (!groupSet) {
             being.generateMove();
@@ -540,17 +505,7 @@ public class Game extends Application implements Runnable{
         }
     }
 
-    public Boolean getGame() {
-        return game;
-    }
-
     public static void main(String[] args) {
         launch(Game.class, args);
-        //launch(Test.class,args);
-    }
-
-    @Override
-    public void run() {
-
     }
 }

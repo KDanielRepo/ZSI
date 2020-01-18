@@ -1,5 +1,3 @@
-import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -17,15 +15,6 @@ public class Algorithm {
     public Algorithm() {
     }
 
-    /*public Being selectParent(List<Being> beings,int fit){
-        Being parent = null;
-        for (int i = 0; i < getGenePool().size(); i++) {
-            if(fit==getGenePool().get(i).getScore()){
-                parent = beings.get(i);
-            }
-        }
-        return parent;
-    }*/
     public void createOffspring() {
         //ustawianie PC kazdego osobnika
         for (int i = 0; i < getGenePool().size(); i++) {
@@ -78,8 +67,8 @@ public class Algorithm {
             Being being2 = getPcPool().get(random2);
             Being child1 = new Being();
             Being child2 = new Being();
-            int cut = ThreadLocalRandom.current().nextInt(0,(being1.getMoves().size()/2));
-            int cut2 = ThreadLocalRandom.current().nextInt(0,being2.getMoves().size()/2);
+            int cut = ThreadLocalRandom.current().nextInt(1,(being1.getMoves().size()/2));
+            int cut2 = ThreadLocalRandom.current().nextInt(1,being2.getMoves().size()/2);
             for (int k = 0; k < cut; k++) {
                 child1.getMoves().add(being1.getMoves().get(k));
             }
@@ -120,7 +109,7 @@ public class Algorithm {
         for (int i = 0; i < getGenePool().size(); i++) {
             sum+=getGenePool().get(i).getScore();
         }
-        System.out.println(sum/getGenePool().size());
+        //System.out.println(sum/getGenePool().size());
     }
     public int calculateGlobalFitness(){
         int sum = 0;
@@ -144,15 +133,15 @@ public class Algorithm {
             if(fit<getGenePool().get(i).getScore()){
                 fit = getGenePool().get(i).getScore();
                 if(best.getScore()<fit){
-                    System.out.println("tempbest: "+best.getScore()+" , gentemp: "+fit);
+                    //System.out.println("tempbest: "+best.getScore()+" , gentemp: "+fit);
                     best = getGenePool().get(i);
                 }
             }
         }
-        System.out.println("best of this gen: "+fit);
+        //System.out.println("best of this gen: "+fit);
         return fit;
     }
-    public int getSecondFittest(){
+    /*public int getSecondFittest(){
         int fit = 0;
         int fittemp = 0;
         for (int i = 0; i < getGenePool().size()-1; i++) {
@@ -162,5 +151,5 @@ public class Algorithm {
             }
         }
         return fit;
-    }
+    }*/
 }
