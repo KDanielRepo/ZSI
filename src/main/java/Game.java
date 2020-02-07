@@ -5,6 +5,7 @@ import javafx.scene.Scene;
 import javafx.scene.chart.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -38,6 +39,7 @@ public class Game extends Application{
     int generation = 0;
     boolean groupSet;
     boolean paused;
+    boolean automatic;
     private String l = "left";
     private String u = "up";
     private String r = "right";
@@ -47,6 +49,8 @@ public class Game extends Application{
     List<XYChart.Series> seriesList = new ArrayList<>();
     BarChart<String,Number> barChart;
     List<Being> testBeings = new ArrayList<>();
+    ProgressBar currentGenProgress;
+    ProgressBar overallProgress;
 
     public void setA() {
         for (int i = 0; i < 4; i++) {
@@ -92,6 +96,7 @@ public class Game extends Application{
     }
 
     public void start(Stage primaryStage) throws Exception {
+        //bar chart
         final CategoryAxis xAxis = new CategoryAxis();
         final NumberAxis yAxis = new NumberAxis();
         barChart = new BarChart<String, Number>(xAxis,yAxis);
@@ -170,8 +175,17 @@ public class Game extends Application{
                 reset();
             }
         });
+        Button auto = new Button("Automatic");
+        auto.setOnAction(event -> {
+            automatic = !automatic;
+            if(automatic){
+                auto.setText("Automatic");
+            }else{
+                auto.setText("Manual");
+            }
+        });
         final Button pause = new Button("Start");
-        hBox.getChildren().addAll(run,pause);
+        hBox.getChildren().addAll(run,pause,auto);
         pause.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -235,7 +249,16 @@ public class Game extends Application{
         HBox hBox1 = new HBox();
         hBox1.getChildren().addAll(graph,show);
         vBox.getChildren().addAll(hBox,label,generationNumber,score,hBox1,t,barChart);
-        borderPane.setCenter(gridPane);
+        Label cgpLabel = new Label("Current Generation: ");
+        Label overallLabel = new Label("Overall progress: ");
+        ProgressBar currentGenProgress = new ProgressBar();
+        ProgressBar overallProgress = new ProgressBar();
+        VBox gridAndProgress = new VBox();
+        HBox progressess = new HBox();
+        progressess.getChildren().addAll(cgpLabel,currentGenProgress,overallLabel,overallProgress);
+        gridAndProgress.getChildren().addAll(gridPane,progressess);
+        borderPane.setLeft(gridAndProgress);
+        //borderPane.setCenter(gridPane);
         borderPane.setRight(vBox);
 
         primaryStage.setTitle("ZSI");
@@ -277,13 +300,15 @@ public class Game extends Application{
     public void update() {
         if (!paused) {
             if (game) {
-                if (!groupSet) {
-                    being.generateMove();
-                } else {
-                    if (movePlayed < being.getMoves().size()) {
-                        being.playMove(movePlayed);
-                    } else {
+                if(automatic) {
+                    if (!groupSet) {
                         being.generateMove();
+                    } else {
+                        if (movePlayed < being.getMoves().size()) {
+                            being.playMove(movePlayed);
+                        } else {
+                            being.generateMove();
+                        }
                     }
                 }
                 if (left) {
@@ -392,6 +417,7 @@ public class Game extends Application{
                 }
                 checkGameOver();
             } else {
+                currentGenProgress.setProgress((double)iteration/300);
                 testBeings.add(being);
                 series.getData().add(new XYChart.Data(u,being.getUpMoves()));
                 series.getData().add(new XYChart.Data(r,being.getRightMoves()));
@@ -430,6 +456,10 @@ public class Game extends Application{
                     iteration = 0;
                     generation++;
                     generationNumber.setText(Integer.toString(Integer.parseInt(generationNumber.getText())-1));
+                    //overallProgress.setProgress(Integer.parseInt(generationNumber.getText())); DODAJ PROGRES GLOBALNY DSAJDOKJASFLKJASLKDJASLKDJLAKSDJLKASJDLKAJSDLKAJSLDKJALSKDJLKSAJDLASJDJASLKDJALSDJLASDJKLASDLJAKSDJLASKDJALSKDJALSK
+                    if(algorithm.getConvergence()>=15){
+                        paused=true;
+                    }
                     if(Integer.parseInt(generationNumber.getText())==0){
                         paused=true;
                     }

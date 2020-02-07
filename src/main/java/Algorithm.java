@@ -5,6 +5,11 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Algorithm {
     private List<Being> genePool = new ArrayList<>();
     private List<Being> pcPool = new ArrayList<>();
+    int convergence = 0;
+
+    public int getConvergence() {
+        return convergence;
+    }
 
     public Being getBest() {
         return best;
@@ -134,10 +139,12 @@ public class Algorithm {
                 fit = getGenePool().get(i).getScore();
                 if(best.getScore()<fit){
                     //System.out.println("tempbest: "+best.getScore()+" , gentemp: "+fit);
+                    convergence = 0;
                     best = getGenePool().get(i);
                 }
             }
         }
+        convergence++;
         //System.out.println("best of this gen: "+fit);
         return fit;
     }
