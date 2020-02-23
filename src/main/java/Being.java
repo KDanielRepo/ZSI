@@ -31,48 +31,22 @@ public class Being {
         amount = 0;
     }
 
-    public void generateMove() {
+    public int generateMove(boolean auto) {
         int move = ThreadLocalRandom.current().nextInt(0,4);
-        if(move==0){
-            robot.keyPress(KeyEvent.VK_UP);
-            //robot.delay(10);
-            robot.keyRelease(KeyEvent.VK_UP);
-        }else if(move==1){
-            robot.keyPress(KeyEvent.VK_RIGHT);
-            //robot.delay(10);
-            robot.keyRelease(KeyEvent.VK_RIGHT);
-        }else if(move==2){
-            robot.keyPress(KeyEvent.VK_DOWN);
-            //robot.delay(10);
-            robot.keyRelease(KeyEvent.VK_DOWN);
-        }else if(move==3){
-            robot.keyPress(KeyEvent.VK_LEFT);
-            //robot.delay(10);
-            robot.keyRelease(KeyEvent.VK_LEFT);
+        if(auto) {
+            return move;
         }
         if(moved){
             moves.add(move);
         }
+        return -1;
     }
-    public void playMove(int i){
+    public int playMove(int i,boolean auto){
         currentMove = moves.get(i);
-        if(currentMove==0){
-            robot.keyPress(KeyEvent.VK_UP);
-            //robot.delay(10);
-            robot.keyRelease(KeyEvent.VK_UP);
-        }else if(currentMove==1){
-            robot.keyPress(KeyEvent.VK_RIGHT);
-            //robot.delay(10);
-            robot.keyRelease(KeyEvent.VK_RIGHT);
-        }else if(currentMove==2){
-            robot.keyPress(KeyEvent.VK_DOWN);
-            //robot.delay(10);
-            robot.keyRelease(KeyEvent.VK_DOWN);
-        }else if(currentMove==3){
-            robot.keyPress(KeyEvent.VK_LEFT);
-            //robot.delay(10);
-            robot.keyRelease(KeyEvent.VK_LEFT);
+        if(auto) {
+            return moves.get(i);
         }
+        return -1;
     }
     public void setMoved(boolean moved){
         this.moved = moved;
@@ -83,6 +57,9 @@ public class Being {
     }
     public void setMove(int a,int b){
         moves.set(a,b);
+    }
+    public void addMove(int move){
+        moves.add(move);
     }
 
     public void setMoves(List<Integer> moves) {
